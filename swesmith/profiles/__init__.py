@@ -18,5 +18,7 @@ from . import typescript
 from . import python
 from . import golang
 from . import rust
+# this import is needed so r concrete profiles self-register on module load.
+from . import r
 
 __all__ = ["RepoProfile", "registry"]

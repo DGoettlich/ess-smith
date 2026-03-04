@@ -139,6 +139,9 @@ LANGUAGE_TO_BASE_CLASS = {
     "cpp": "CppProfile",
     "csharp": "CSharpProfile",
     "php": "PhpProfile",
+    # keep one canonical alias for r here.
+    # if you want stricter behavior, remove this key to disable r in modal flow.
+    "r": "RProfile",
 }
 
 TEST_OUTPUT_START = ">>>>> Start Test Output"

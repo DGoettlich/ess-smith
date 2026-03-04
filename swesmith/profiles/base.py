@@ -678,6 +678,9 @@ class Registry(UserDict):
             "PythonProfile",
             "GoProfile",
             "RustProfile",
+            # rprofile is a base class for concrete r repos and should not
+            # be registered as a runnable repo on its own.
+            "RProfile",
         }:
             # TODO: Update for new languages
             return
