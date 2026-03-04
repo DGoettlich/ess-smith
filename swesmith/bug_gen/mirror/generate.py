@@ -28,6 +28,7 @@ from swesmith.bug_gen.mirror.prompts import (
     DEMO_PROMPT,
     RECOVERY_PROMPT,
     TASK_PROMPT,
+    language_name,
 )
 from swesmith.constants import (
     LOG_DIR_BUG_GEN,
@@ -67,8 +68,29 @@ def get_metadata_file_name(pr_num):
 worker_tempdirs = {}
 
 
+def _extract_output(output: str) -> str:
+    """Extract code from a fenced block if present, otherwise return raw text."""
+    # this used to only accept ```python fences.
+    # we changed it to accept any fence label so non-python recovery
+    # does not write back markdown markers into source files.
+    code_block_pat = re.compile(r"```(?:[\w+-]+)?\s*\n([\s\S]*?)```", re.MULTILINE)
+    match = code_block_pat.search(output)
+    if match:
+        return match.group(1).strip()
+    return output.strip()
+
+
+def _normalize_exts(exts: list[str]) -> set[str]:
+    return {ext.lower() for ext in exts}
+
+
 def should_attempt_recovery(
-    inst, repo, max_files=8, max_lines=500, max_file_lines=10000
+    inst,
+    repo,
+    exts: list[str],
+    max_files=8,
+    max_lines=500,
+    max_file_lines=10000,
 ):
     """
     Attempt if the following criteria are met:
@@ -76,14 +98,19 @@ def should_attempt_recovery(
     * Fewer than max_lines lines are changed
     * No changed file is >max_file_lines lines
     """
+    # this used to be python-only (".py").
+    # now it uses profile extensions so the same flow works for r and others.
     patch = PatchSet(inst[KEY_PATCH])
-    num_py_edited = len([x for x in patch if x.path.endswith(".py")])
-    if num_py_edited == 0:
-        return False, "No Python files changed"
-    if num_py_edited > max_files:
+    allowed_exts = _normalize_exts(exts)
+    changed_source_files = [
+        x for x in patch if os.path.splitext(x.path)[1].lower() in allowed_exts
+    ]
+    if len(changed_source_files) == 0:
+        return False, "No supported source files changed"
+    if len(changed_source_files) > max_files:
         return False, f"Too many files changed (>{max_files} files)"
     lines_changed = 0
-    for file_diff in patch:
+    for file_diff in changed_source_files:
         if file_diff.is_binary_file:
             return False, "Contains binary file"
         file_path = os.path.join(repo, file_diff.path)
@@ -114,15 +141,10 @@ def recover_sweb_inst(inst, repo, model, api_key=None, log_path=None):
     """
     patch_files = []
     patch = PatchSet(inst[KEY_PATCH])
-
-    def extract_output(output):
-        code_block_pat = re.compile(r"^```python\s*\n([\s\S]*)^```\s*$", re.MULTILINE)
-        if code_block_pat.search(output):
-            output = output.split("```python", 1)[1]
-            output = output.rsplit("```", 1)[0]
-            output = output.strip()
-            output = code_block_pat.sub("", output)
-        return output
+    # fetch profile once so filtering and prompt text use the same source of truth.
+    profile = registry.get(repo)
+    allowed_exts = _normalize_exts(profile.exts)
+    lang = language_name(profile.exts)
 
     metadata = {KEY_COST: 0, KEY_REWRITES: {}, KEY_RECOVER_STATUS: RECOVER_SUCCESS}
     for idx, file_diff in enumerate(patch):
@@ -159,8 +181,9 @@ def recover_sweb_inst(inst, repo, model, api_key=None, log_path=None):
                 patch_files.append(patch_path)
             continue
 
-        if not os.path.exists(file_path) or not file_path.endswith(".py"):
-            # Skip over edits to files that don't exist or are not Python files
+        file_ext = os.path.splitext(file_path)[1].lower()
+        if not os.path.exists(file_path) or file_ext not in allowed_exts:
+            # Skip over edits to files that don't exist or are not supported source files
             continue
         file_content = open(file_path).read()
 
@@ -168,7 +191,9 @@ def recover_sweb_inst(inst, repo, model, api_key=None, log_path=None):
         response = completion(
             model=model,
             messages=[
-                {"role": "user", "content": RECOVERY_PROMPT},
+                # prompt wording is now language-aware.
+                # this avoids telling the model to output python when repo is r.
+                {"role": "user", "content": RECOVERY_PROMPT.format(language=lang)},
                 {"role": "user", "content": DEMO_PROMPT},
                 {
                     "role": "user",
@@ -185,7 +210,7 @@ def recover_sweb_inst(inst, repo, model, api_key=None, log_path=None):
         metadata[KEY_COST] += cost
         metadata[INSTANCE_REF] = inst
         output = response.choices[0].message.content.strip()  # type: ignore
-        output_extracted = extract_output(output)
+        output_extracted = _extract_output(output)
         metadata[KEY_REWRITES][file_path] = {
             "output": output,
             "output_extracted": output_extracted,
@@ -262,11 +287,18 @@ def process_single_instance(
         os.makedirs(log_path, exist_ok=True)
 
         os.chdir(temp_dir)
-        registry.get(repo).clone()
+        # get the profile once and reuse it for clone + extension-based gating.
+        profile = registry.get(repo)
+        profile.clone()
 
         # Check if we should attempt recovery
         attempt_recovery, reason = should_attempt_recovery(
-            inst, repo, max_files, max_lines, max_file_lines
+            inst,
+            repo,
+            exts=profile.exts,
+            max_files=max_files,
+            max_lines=max_lines,
+            max_file_lines=max_file_lines,
         )
         if not attempt_recovery:
             with open(metadata_file, "w") as f:

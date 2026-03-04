@@ -15,7 +15,7 @@ Diff patch will be provided here.
 
 OUTPUT:
 The fully rewritten source code, after undoing all changes specified in the diff.
-The output should be valid Python code.
+The output should be valid {language} code.
 """
 
 DEMO_PROMPT = """Demonstration:
@@ -74,3 +74,15 @@ NOTES:
 - DO NOT PROVIDE ANY TEXT ASIDE FROM THE REWRITTEN FILE. ANSWER WITH ONLY THE REWRITTEN CODE.
 
 OUTPUT:"""
+
+
+def language_name(exts: list[str]) -> str:
+    # this only controls prompt wording.
+    # file routing and parsing are handled elsewhere by extension maps.
+    exts_lower = {ext.lower() for ext in exts}
+    if ".py" in exts_lower:
+        return "Python"
+    if ".r" in exts_lower:
+        return "R"
+    # fallback keeps prompt valid for other languages until we add full names.
+    return "source"
