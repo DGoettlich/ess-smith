@@ -66,6 +66,11 @@ def test_file_ruby():
 
 
 @pytest.fixture
+def test_file_r():
+    return Path(repo_root) / "tests/test_logs/files/r/sample.R"
+
+
+@pytest.fixture
 def test_file_rust():
     return Path(repo_root) / "tests/test_logs/files/rust/cookie.rs"
 

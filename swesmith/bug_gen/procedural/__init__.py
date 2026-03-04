@@ -12,6 +12,7 @@ from swesmith.bug_gen.procedural.golang import MODIFIERS_GOLANG
 from swesmith.bug_gen.procedural.java import MODIFIERS_JAVA
 from swesmith.bug_gen.procedural.javascript import MODIFIERS_JAVASCRIPT
 from swesmith.bug_gen.procedural.python import MODIFIERS_PYTHON
+from swesmith.bug_gen.procedural.r import MODIFIERS_R
 from swesmith.bug_gen.procedural.rust import MODIFIERS_RUST
 from swesmith.bug_gen.procedural.typescript import MODIFIERS_TYPESCRIPT
 
@@ -25,6 +26,9 @@ MAP_EXT_TO_MODIFIERS = {
     ".hpp": MODIFIERS_CPP,
     ".js": MODIFIERS_JAVASCRIPT,
     ".py": MODIFIERS_PYTHON,
+    # map both extension forms so r files always route to r modifiers.
+    ".r": MODIFIERS_R,
+    ".R": MODIFIERS_R,
     ".rs": MODIFIERS_RUST,
     ".ts": MODIFIERS_TYPESCRIPT,
     ".tsx": MODIFIERS_TYPESCRIPT,

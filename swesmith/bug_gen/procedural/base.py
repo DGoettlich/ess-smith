@@ -39,7 +39,7 @@ class ProceduralModifier(ABC):
         )
 
     @abstractmethod
-    def modify(self, code_entity: CodeEntity) -> BugRewrite:
+    def modify(self, code_entity: CodeEntity) -> BugRewrite | None:
         """
         Apply procedural modifications to the given code entity.
 
@@ -48,6 +48,11 @@ class ProceduralModifier(ABC):
 
         Returns:
             BugRewrite if modification was successful, None otherwise
+
+            note:
+            this return type now allows None because existing modifiers
+            in this repo already use None to signal "no safe change made".
+            this keeps the interface honest and easier to reason about.
         """
         pass
 

@@ -7,6 +7,7 @@ from swesmith.bug_gen.adapters.javascript import get_entities_from_file_js
 from swesmith.bug_gen.adapters.php import get_entities_from_file_php
 from swesmith.bug_gen.adapters.typescript import get_entities_from_file_ts
 from swesmith.bug_gen.adapters.python import get_entities_from_file_py
+from swesmith.bug_gen.adapters.r import get_entities_from_file_r
 from swesmith.bug_gen.adapters.ruby import get_entities_from_file_rb
 from swesmith.bug_gen.adapters.rust import get_entities_from_file_rs
 
@@ -25,6 +26,9 @@ get_entities_from_file = {
     ".ts": get_entities_from_file_ts,
     ".tsx": get_entities_from_file_ts,
     ".py": get_entities_from_file_py,
+    # r repos often mix lowercase and uppercase extensions, so keep both.
+    ".r": get_entities_from_file_r,
+    ".R": get_entities_from_file_r,
     ".rb": get_entities_from_file_rb,
     ".rs": get_entities_from_file_rs,
 }

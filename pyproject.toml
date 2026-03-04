@@ -51,6 +51,8 @@ all = [
     "tree-sitter-go",
     "tree-sitter-java",
     "tree-sitter-javascript",
+    # used by the r adapter to load r grammar without custom compile steps
+    "tree-sitter-language-pack",
     "tree-sitter-php>=0.23.11",
     "tree-sitter-ruby",
     "tree-sitter-rust",
@@ -98,6 +100,8 @@ generate = [
     "tree-sitter-javascript",
     "tree-sitter-typescript",
     "tree-sitter-java",
+    # used by the r adapter to load r grammar without custom compile steps
+    "tree-sitter-language-pack",
     "tree-sitter-ruby",
     "tree-sitter-rust",
     "tree-sitter-php>=0.23.11",
