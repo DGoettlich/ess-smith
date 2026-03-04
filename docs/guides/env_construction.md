@@ -19,6 +19,11 @@ Coming soon!
     Early on in SWE-smith's development, we focused exclusively on Python repositories and wrote Python-specific scripts for automatic repo instllation.
     More information [here](../guides/env_construction_py.md)
 
+!!! note "R installation scripts"
+
+    SWE-smith now includes an R-specific onboarding helper for arbitrary repositories.
+    See [Build R Environments](../guides/env_construction_r.md).
+
 ## Create an Execution Environment
 Run the following command to create a Docker image for the repository.
 

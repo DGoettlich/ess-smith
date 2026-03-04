@@ -9,7 +9,7 @@ The formulation for these task instances is identical to the definition put fort
 
 We design each method with the following principles in mind:
 
-* **Generalizability**: These methods work for any Python repository.
+* **Generalizability**: These methods work for repositories with supported language adapters.
 * **Scalability**: These methods require little to no manual intervention.
 * **Diversity**: These methods generate a diverse set of bugs.
 

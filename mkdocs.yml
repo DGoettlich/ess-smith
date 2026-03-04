@@ -73,6 +73,7 @@ nav:
     - Train SWE-agents: guides/train_swe_agent.md
   - Miscellaneous:
     - Build Python Environments: guides/env_construction_py.md
+    - Build R Environments: guides/env_construction_r.md
 plugins:
    - glightbox
    - search
